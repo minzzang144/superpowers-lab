@@ -39,4 +39,14 @@ export class BookmarksController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.bookmarksService.remove(id);
   }
+
+  @Post(':id/tags')
+  addTag(@Param('id', ParseIntPipe) id: number, @Body() body: { name: string }) {
+    return this.bookmarksService.addTag(id, body.name);
+  }
+
+  @Delete(':id/tags')
+  removeTag(@Param('id', ParseIntPipe) id: number, @Body() body: { tagId: number }) {
+    return this.bookmarksService.removeTag(id, body.tagId);
+  }
 }

@@ -1,13 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { DATABASE, DrizzleDB } from '../database/database.module';
-import { bookmarks } from '../database/schema';
+import { bookmarks, bookmarkTags } from '../database/schema';
+import { TagsService } from '../tags/tags.service';
 import { CreateBookmarkDto } from './dto/create-bookmark.dto';
 import { UpdateBookmarkDto } from './dto/update-bookmark.dto';
 
 @Injectable()
 export class BookmarksService {
-  constructor(@Inject(DATABASE) private readonly db: DrizzleDB) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: DrizzleDB,
+    private readonly tagsService: TagsService,
+  ) {}
 
   async create(dto: CreateBookmarkDto) {
     const [bookmark] = await this.db
@@ -36,5 +40,20 @@ export class BookmarksService {
 
   async remove(id: number) {
     await this.db.delete(bookmarks).where(eq(bookmarks.id, id));
+  }
+
+  async addTag(bookmarkId: number, tagName: string) {
+    const tag = await this.tagsService.findOrCreate(tagName);
+    await this.db.insert(bookmarkTags).values({ bookmarkId, tagId: tag.id });
+    return { bookmarkId, tagId: tag.id };
+  }
+
+  async removeTag(bookmarkId: number, tagId: number) {
+    await this.db.delete(bookmarkTags).where(
+      and(
+        eq(bookmarkTags.bookmarkId, bookmarkId),
+        eq(bookmarkTags.tagId, tagId),
+      ),
+    );
   }
 }

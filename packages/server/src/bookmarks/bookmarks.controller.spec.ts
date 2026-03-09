@@ -11,6 +11,8 @@ describe('BookmarksController', () => {
     findOne: jest.fn().mockResolvedValue({ id: 1, url: 'https://example.com', title: 'Example' }),
     update: jest.fn().mockResolvedValue({ id: 1, url: 'https://updated.com', title: 'Updated' }),
     remove: jest.fn().mockResolvedValue(undefined),
+    addTag: jest.fn().mockResolvedValue({ bookmarkId: 1, tagId: 1 }),
+    removeTag: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -52,5 +54,16 @@ describe('BookmarksController', () => {
   it('DELETE /api/bookmarks/:id - should delete a bookmark', async () => {
     await controller.remove(1);
     expect(mockService.remove).toHaveBeenCalledWith(1);
+  });
+
+  it('POST /api/bookmarks/:id/tags - should add a tag', async () => {
+    const result = await controller.addTag(1, { name: 'typescript' });
+    expect(result).toEqual({ bookmarkId: 1, tagId: 1 });
+    expect(mockService.addTag).toHaveBeenCalledWith(1, 'typescript');
+  });
+
+  it('DELETE /api/bookmarks/:id/tags - should remove a tag', async () => {
+    await controller.removeTag(1, { tagId: 1 });
+    expect(mockService.removeTag).toHaveBeenCalledWith(1, 1);
   });
 });

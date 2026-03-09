@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookmarksService } from './bookmarks.service';
+import { TagsService } from '../tags/tags.service';
 import { DATABASE } from '../database/database.module';
 
 describe('BookmarksService', () => {
   let service: BookmarksService;
   let mockDb: Record<string, jest.Mock>;
+  let mockTagsService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     mockDb = {
@@ -33,10 +35,15 @@ describe('BookmarksService', () => {
       delete: jest.fn().mockReturnThis(),
     };
 
+    mockTagsService = {
+      findOrCreate: jest.fn().mockResolvedValue({ id: 1, name: 'typescript' }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BookmarksService,
         { provide: DATABASE, useValue: mockDb },
+        { provide: TagsService, useValue: mockTagsService },
       ],
     }).compile();
 
@@ -96,6 +103,22 @@ describe('BookmarksService', () => {
       await service.remove(1);
       expect(mockDb.delete).toHaveBeenCalled();
       expect(mockDb.where).toHaveBeenCalled();
+    });
+  });
+
+  describe('addTag', () => {
+    it('should find or create tag and link it to bookmark', async () => {
+      const result = await service.addTag(1, 'typescript');
+      expect(mockTagsService.findOrCreate).toHaveBeenCalledWith('typescript');
+      expect(mockDb.insert).toHaveBeenCalled();
+      expect(result).toEqual({ bookmarkId: 1, tagId: 1 });
+    });
+  });
+
+  describe('removeTag', () => {
+    it('should delete the bookmark-tag relationship', async () => {
+      await service.removeTag(1, 1);
+      expect(mockDb.delete).toHaveBeenCalled();
     });
   });
 });
