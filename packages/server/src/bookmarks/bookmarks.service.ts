@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, like, or, type SQL } from 'drizzle-orm';
-import { DATABASE, DrizzleDB } from '../database/database.module';
+import { DATABASE } from '../database/database.module';
+import type { DrizzleDB } from '../database/database.module';
 import { bookmarks, bookmarkTags } from '../database/schema';
 import { TagsService } from '../tags/tags.service';
 import { CreateBookmarkDto } from './dto/create-bookmark.dto';
