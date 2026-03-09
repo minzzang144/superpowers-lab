@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, like, or, type SQL } from 'drizzle-orm';
 import { DATABASE, DrizzleDB } from '../database/database.module';
 import { bookmarks, bookmarkTags } from '../database/schema';
 import { TagsService } from '../tags/tags.service';
@@ -21,8 +21,32 @@ export class BookmarksService {
     return bookmark;
   }
 
-  async findAll(_params?: { search?: string; tag?: string; favorite?: boolean }) {
-    return this.db.select().from(bookmarks).all();
+  async findAll(params?: { search?: string; tag?: string; favorite?: boolean }) {
+    let query = this.db.select().from(bookmarks);
+    const conditions: SQL[] = [];
+
+    if (params?.search) {
+      const searchCondition = or(
+        like(bookmarks.title, `%${params.search}%`),
+        like(bookmarks.url, `%${params.search}%`),
+        like(bookmarks.memo, `%${params.search}%`),
+      );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
+    }
+
+    if (params?.favorite) {
+      conditions.push(eq(bookmarks.isFavorite, true));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(
+        conditions.length === 1 ? conditions[0] : and(...conditions),
+      ) as typeof query;
+    }
+
+    return query.all();
   }
 
   async findOne(id: number) {

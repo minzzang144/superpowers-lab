@@ -79,6 +79,23 @@ describe('BookmarksService', () => {
     });
   });
 
+  describe('findAll with filters', () => {
+    it('should apply search filter with LIKE', async () => {
+      await service.findAll({ search: 'example' });
+      expect(mockDb.where).toHaveBeenCalled();
+    });
+
+    it('should apply favorite filter', async () => {
+      await service.findAll({ favorite: true });
+      expect(mockDb.where).toHaveBeenCalled();
+    });
+
+    it('should return all when no filters', async () => {
+      await service.findAll();
+      expect(mockDb.select).toHaveBeenCalled();
+    });
+  });
+
   describe('findOne', () => {
     it('should return a single bookmark by id', async () => {
       const result = await service.findOne(1);
