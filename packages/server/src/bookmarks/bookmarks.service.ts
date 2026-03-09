@@ -17,7 +17,7 @@ export class BookmarksService {
     return bookmark;
   }
 
-  async findAll() {
+  async findAll(_params?: { search?: string; tag?: string; favorite?: boolean }) {
     return this.db.select().from(bookmarks).all();
   }
 
